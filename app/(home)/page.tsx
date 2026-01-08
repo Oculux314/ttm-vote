@@ -1,11 +1,12 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { TextScreen } from "@/components/TextScreen";
 import { SingletonWithContent } from "@/convex/schema";
 import { WaitingScreen } from "@/components/WaitingScreen";
 import { Header } from "@/components/Header";
+import { useState } from "react";
 
 export default function HomePage() {
   return (
@@ -28,7 +29,66 @@ function Main() {
 }
 
 function VotingScreen({ singleton }: { singleton: SingletonWithContent }) {
-  return <TextScreen>Voting...</TextScreen>;
+  const [chosenTopic, setChosenTopic] = useState<1 | 2 | 3 | null>(null);
+
+  return (
+    <TextScreen>
+      <div className="flex flex-col gap-8">
+        <p className="text-center text-md">What should the next topic be?</p>
+        <VoteButton
+          topic={singleton.option1Content}
+          index={1}
+          selectedTopic={chosenTopic}
+          setChosenTopic={setChosenTopic}
+        />
+        <VoteButton
+          topic={singleton.option2Content}
+          index={2}
+          selectedTopic={chosenTopic}
+          setChosenTopic={setChosenTopic}
+        />
+        <VoteButton
+          topic={singleton.option3Content}
+          index={3}
+          selectedTopic={chosenTopic}
+          setChosenTopic={setChosenTopic}
+        />
+      </div>
+    </TextScreen>
+  );
+}
+
+type VoteButtonProps = {
+  topic: string;
+  index: 1 | 2 | 3;
+  selectedTopic: 1 | 2 | 3 | null;
+  setChosenTopic: (index: 1 | 2 | 3) => void;
+};
+function VoteButton({
+  topic,
+  index,
+  selectedTopic,
+  setChosenTopic,
+}: VoteButtonProps) {
+  const isSelected = selectedTopic === index;
+  const submitVote = useMutation(api.myFunctions.submitVote);
+
+  const selectTopic = () => {
+    setChosenTopic(index);
+    submitVote({
+      plusOptionNumber: index,
+      minusOptionNumber: selectedTopic,
+    });
+  };
+
+  return (
+    <button
+      onClick={selectTopic}
+      className={`w-full cursor-pointer ${isSelected ? "bg-slate-400 dark:bg-slate-500" : "bg-slate-200 dark:bg-slate-700"} px-4 py-3 rounded hover:bg-slate-300 dark:hover:bg-slate-600 active:bg-slate-400 dark:active:bg-slate-500`}
+    >
+      {topic}
+    </button>
+  );
 }
 
 function SpeakingScreenForVoter({
@@ -43,7 +103,7 @@ function SpeakingScreenForVoter({
   return (
     <TextScreen>
       <p className="text-center">{singleton.currentTopicContent}</p>
-      <p className="text-center text-sm mt-2">
+      <p className="text-center text-sm">
         Votes: {singleton.currentTopicVotes}
       </p>
     </TextScreen>

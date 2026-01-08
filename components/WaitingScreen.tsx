@@ -3,7 +3,7 @@ import { TextScreen } from "./TextScreen";
 export function WaitingScreen() {
   return (
     <TextScreen>
-      <p className="flex gap-0.5">
+      <p className="text-2xl flex gap-0.5">
         Waiting
         <span className="flex">
           <span className="inline-block translate-y-1 animate-[bounce_0.6s_ease-in-out_infinite]">.</span>
