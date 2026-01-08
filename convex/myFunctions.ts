@@ -139,12 +139,16 @@ async function getThreeRandomUnusedTopics(
   ctx: QueryCtx,
 ): Promise<Array<Topic & { _id: Id<"topics"> }>> {
   const allTopics = await ctx.db.query("topics").collect();
-  const unusedTopics =
-    allTopics.length > 3
-      ? allTopics.filter((topic) => !topic.beenUsed)
-      : allTopics;
+  const unusedTopics = allTopics.filter((topic) => !topic.beenUsed);
   unusedTopics.sort(() => Math.random() - 0.5);
-  return unusedTopics.slice(0, 3);
+  const threeRandomUnusedTopics = unusedTopics.slice(0, 3);
+  if (threeRandomUnusedTopics.length < 3) {
+    const extraTopicsNeeded = 3 - threeRandomUnusedTopics.length;
+    const usedTopics = allTopics.filter((topic) => topic.beenUsed);
+    usedTopics.sort(() => Math.random() - 0.5);
+    threeRandomUnusedTopics.push(...usedTopics.slice(0, extraTopicsNeeded));
+  }
+  return threeRandomUnusedTopics;
 }
 
 export const startSpeaking = mutation({

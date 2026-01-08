@@ -2,7 +2,6 @@ import { defineSchema, defineTable } from "convex/server";
 import { Infer, v } from "convex/values";
 
 const schema = defineSchema({
-  numbers: defineTable({ value: v.float64() }),
   singletons: defineTable({
     state: v.union(
       v.literal("waiting"),
