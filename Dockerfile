@@ -5,9 +5,6 @@ FROM node:${NODE_VERSION}-slim AS base
 
 LABEL fly_launch_runtime="Next.js"
 
-RUN --mount=type=secret,id=CONVEX_DEPLOYMENT \
-    cat /run/secrets/CONVEX_DEPLOYMENT
-
 RUN printenv
 
 WORKDIR /app
@@ -31,11 +28,9 @@ RUN yarn install --frozen-lockfile --production=false
 COPY . .
 
 # Build
-RUN --mount=type=secret,id=CONVEX_DEPLOYMENT \
-    --mount=type=secret,id=NEXT_PUBLIC_CONVEX_URL \
-    CONVEX_DEPLOYMENT="$(cat /run/secrets/CONVEX_DEPLOYMENT)" \
-    NEXT_PUBLIC_CONVEX_URL="$(cat /run/secrets/NEXT_PUBLIC_CONVEX_URL)" \
-    yarn build
+ENV CONVEX_DEPLOYMENT=""
+ENV NEXT_PUBLIC_CONVEX_URL=""
+RUN yarn build
 
 # Remove dev dependencies
 RUN yarn install --production --frozen-lockfile
