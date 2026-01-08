@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.4
 
-ARG NODE_VERSION=20.18.1
+ARG NODE_VERSION=22.16.0
 FROM node:${NODE_VERSION}-slim AS base
 
 LABEL fly_launch_runtime="Next.js"
@@ -12,7 +12,7 @@ ENV NODE_ENV="production"
 
 # Install yarn
 ARG YARN_VERSION=1.22.22
-RUN npm install -g yarn@$YARN_VERSION
+RUN npm install -g yarn@$YARN_VERSION --force
 
 # ---------------- Build Stage ----------------
 FROM base AS build
