@@ -32,7 +32,7 @@ function SpeakingScreenForSpeaker({ singleton }: { singleton: SingletonWithConte
 
   return (
     <TextScreen>
-      <p className="text-center">{singleton.currentTopicContent}</p>
+      <p className="text-center text-2xl">{singleton.currentTopicContent}</p>
     </TextScreen>
   );
 }

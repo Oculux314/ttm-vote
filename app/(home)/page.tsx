@@ -109,7 +109,7 @@ function SpeakingScreenForVoter({
 
   return (
     <TextScreen>
-      <p className="text-center">{singleton.currentTopicContent}</p>
+      <p className="text-center text-2xl">{singleton.currentTopicContent}</p>
       <p className="text-center text-sm">
         Votes: {singleton.currentTopicVotes}
       </p>
