@@ -9,7 +9,6 @@ import { useMutation, useQuery } from "convex/react";
 
 export default function AdminPage() {
   const singleton = useQuery(api.myFunctions.getSingleton);
-  const nextVote = useMutation(api.myFunctions.nextVoting);
   const reset = useMutation(api.myFunctions.reset);
 
   if (!singleton) {
@@ -36,7 +35,7 @@ export default function AdminPage() {
       >
         {state}
       </p>
-      <p className="my-2 text-lg">{singleton.currentTopicContent || "None"}</p>
+      <p className="my-2 text-lg text-center">{singleton.currentTopicContent || "None"}</p>
       <ol className="list-decimal flex flex-col gap-2">
         <li>
           {singleton.option1Content} ({singleton.option1Votes})
@@ -48,11 +47,21 @@ export default function AdminPage() {
           {singleton.option3Content} ({singleton.option3Votes})
         </li>
       </ol>
-      <Button className="mt-20 h-16 w-full text-2xl" onClick={() => nextVote()}>
-        {state === "waiting" ? "Start" : "Next"}
-      </Button>
+      {state === "voting" ? <FinishVotingButton /> : <NextButton state={state} />}
     </TextScreen>
   );
 }
 
+function NextButton({ state }: { state: string }) {
+  const nextVote = useMutation(api.myFunctions.nextVoting);
+  return <Button className="mt-20 h-16 w-full text-2xl" onClick={() => nextVote()}>
+    {state === "waiting" ? "Start" : "Next"}
+  </Button>;
+}
 
+function FinishVotingButton() {
+  const finishVoting = useMutation(api.myFunctions.startSpeaking);
+  return <Button className="mt-20 h-16 w-full text-2xl" onClick={() => finishVoting()}>
+    Finish Voting
+  </Button>;
+}
