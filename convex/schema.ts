@@ -1,7 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { Infer, v } from "convex/values";
 
-export default defineSchema({
+const schema = defineSchema({
   numbers: defineTable({ value: v.float64() }),
   singletons: defineTable({
     state: v.union(
@@ -23,3 +23,7 @@ export default defineSchema({
     beenUsed: v.boolean(),
   }),
 });
+export default schema;
+
+export type Singleton = Infer<typeof schema.tables.singletons.validator>;
+export type Topic = Infer<typeof schema.tables.topics.validator>;
