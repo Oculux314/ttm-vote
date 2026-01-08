@@ -7,6 +7,8 @@ import { SingletonWithContent } from "@/convex/schema";
 import { WaitingScreen } from "@/components/WaitingScreen";
 import { Header } from "@/components/Header";
 import { useState } from "react";
+import { cn } from "@/util/cn";
+import { Button } from "@/components/Button";
 
 export default function HomePage() {
   return (
@@ -82,12 +84,17 @@ function VoteButton({
   };
 
   return (
-    <button
+    <Button
       onClick={selectTopic}
-      className={`w-full cursor-pointer ${isSelected ? "bg-slate-400 dark:bg-slate-500" : "bg-slate-200 dark:bg-slate-700"} px-4 py-3 rounded hover:bg-slate-300 dark:hover:bg-slate-600 active:bg-slate-400 dark:active:bg-slate-500`}
+      className={cn(
+        "w-full px-4 py-3 rounded",
+        isSelected
+          ? "bg-slate-400 dark:bg-slate-500"
+          : "bg-slate-200 dark:bg-slate-700",
+      )}
     >
       {topic}
-    </button>
+    </Button>
   );
 }
 

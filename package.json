@@ -12,10 +12,12 @@
     "lint": "eslint . --ignore-pattern \"convex/_generated/**\""
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "convex": "^1.31.0",
     "next": "16.0.10",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react-dom": "^19.2.1",
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@convex-dev/eslint-plugin": "^1.1.1",
