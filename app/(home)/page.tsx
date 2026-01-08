@@ -33,7 +33,7 @@ function VotingScreen({ singleton }: { singleton: SingletonWithContent }) {
 
   return (
     <TextScreen>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8 w-full max-w-120">
         <p className="text-center text-md">What should the next topic be?</p>
         <VoteButton
           topic={singleton.option1Content}
