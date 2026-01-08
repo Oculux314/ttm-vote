@@ -1,5 +1,7 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, QueryCtx } from "./_generated/server";
+import { Topic } from "./schema";
+import { Id } from "./_generated/dataModel";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
@@ -13,7 +15,7 @@ const DEFAULT_SINGLETON = {
   option3: null,
   option1Votes: 0,
   option2Votes: 0,
-  option3Votes: 0
+  option3Votes: 0,
 } as const;
 
 // MARK: Getting
@@ -21,19 +23,35 @@ const DEFAULT_SINGLETON = {
 export const getSingleton = query({
   args: {},
   handler: async (ctx) => {
-    const singleton = await ctx.db
-      .query("singletons")
-      .first();
-    return singleton ?? DEFAULT_SINGLETON;
+    const singleton =
+      (await ctx.db.query("singletons").first()) ?? DEFAULT_SINGLETON;
+
+    const singletonWithTopicContent = {
+      ...singleton,
+      currentTopicContent: await getTopicContent(ctx, singleton.currentTopic),
+      option1Content: await getTopicContent(ctx, singleton.option1),
+      option2Content: await getTopicContent(ctx, singleton.option2),
+      option3Content: await getTopicContent(ctx, singleton.option3),
+    };
+    return singletonWithTopicContent;
   },
 });
+
+async function getTopicContent(
+  ctx: QueryCtx,
+  topicId: Id<"topics"> | null,
+): Promise<string> {
+  if (!topicId) {
+    return "";
+  }
+  const topic = await ctx.db.get(topicId);
+  return topic?.content ?? "";
+}
 
 export const getAllTopics = query({
   args: {},
   handler: async (ctx) => {
-    const topics = await ctx.db
-      .query("topics")
-      .collect();
+    const topics = await ctx.db.query("topics").collect();
     return topics;
   },
 });
@@ -43,12 +61,15 @@ export const getAllTopics = query({
 export const submitVote = mutation({
   args: {
     plusOptionNumber: v.union(v.literal(1), v.literal(2), v.literal(3)),
-    minusOptionNumber: v.union(v.literal(1), v.literal(2), v.literal(3), v.null()),
+    minusOptionNumber: v.union(
+      v.literal(1),
+      v.literal(2),
+      v.literal(3),
+      v.null(),
+    ),
   },
   handler: async (ctx, args) => {
-    const singleton = await ctx.db
-      .query("singletons")
-      .first();
+    const singleton = await ctx.db.query("singletons").first();
     if (!singleton) {
       throw new Error("Singleton not found");
     }
@@ -76,18 +97,14 @@ export const submitVote = mutation({
 export const reset = mutation({
   args: {},
   handler: async (ctx) => {
-    const singleton = await ctx.db
-      .query("singletons")
-      .first();
+    const singleton = await ctx.db.query("singletons").first();
     if (singleton) {
       await ctx.db.patch(singleton._id, DEFAULT_SINGLETON);
     } else {
       await ctx.db.insert("singletons", DEFAULT_SINGLETON);
     }
     // Reset all topics to not used
-    const topics = await ctx.db
-      .query("topics")
-      .collect();
+    const topics = await ctx.db.query("topics").collect();
     for (const topic of topics) {
       await ctx.db.patch(topic._id, { beenUsed: false });
     }
@@ -97,34 +114,43 @@ export const reset = mutation({
 export const nextVoting = mutation({
   args: {},
   handler: async (ctx) => {
-    const singleton = await ctx.db
-      .query("singletons")
-      .first();
+    const singleton = await ctx.db.query("singletons").first();
     if (!singleton) {
       throw new Error("Singleton not found");
     }
+
+    const [topic1, topic2, topic3] = await getThreeRandomUnusedTopics(ctx);
 
     await ctx.db.patch(singleton._id, {
       state: "voting",
       currentTopic: null,
       currentTopicVotes: 0,
-      option1: null,
+      option1: topic1._id,
       option1Votes: 0,
-      option2: null,
+      option2: topic2._id,
       option2Votes: 0,
-      option3: null,
+      option3: topic3._id,
       option3Votes: 0,
     });
   },
 });
 
+async function getThreeRandomUnusedTopics(
+  ctx: QueryCtx,
+): Promise<Array<Topic & { _id: Id<"topics"> }>> {
+  const allTopics = await ctx.db.query("topics").collect();
+  const unusedTopics =
+    allTopics.length > 3
+      ? allTopics.filter((topic) => !topic.beenUsed)
+      : allTopics;
+  unusedTopics.sort(() => Math.random() - 0.5);
+  return unusedTopics.slice(0, 3);
+}
 
 export const startSpeaking = mutation({
   args: {},
   handler: async (ctx) => {
-    const singleton = await ctx.db
-      .query("singletons")
-      .first();
+    const singleton = await ctx.db.query("singletons").first();
     if (!singleton) {
       throw new Error("Singleton not found");
     }
@@ -140,6 +166,10 @@ export const startSpeaking = mutation({
     ];
     topicVotes.sort((a, b) => b.votes - a.votes);
     const winningTopic = topicVotes[0];
+
+    if (winningTopic.topicId) {
+      await ctx.db.patch(winningTopic.topicId, { beenUsed: true });
+    }
 
     await ctx.db.patch(singleton._id, {
       state: "speaking",

@@ -26,4 +26,10 @@ const schema = defineSchema({
 export default schema;
 
 export type Singleton = Infer<typeof schema.tables.singletons.validator>;
+export type SingletonWithContent = Singleton & {
+  currentTopicContent: string;
+  option1Content: string;
+  option2Content: string;
+  option3Content: string;
+};
 export type Topic = Infer<typeof schema.tables.topics.validator>;
